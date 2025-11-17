@@ -25,3 +25,21 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ needs.test.result == 'success' && github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Trigger Render deploy hook
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "ERROR: RENDER_DEPLOY_HOOK secret is not set" >&2
+            exit 1
+          fi
+          echo "Calling Render deploy hook..."
+          curl --fail -X POST "$RENDER_DEPLOY_HOOK"
+      - name: Confirm deploy trigger
+        run: echo "Render deploy hook triggered"
