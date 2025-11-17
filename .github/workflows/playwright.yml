@@ -8,8 +8,6 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    env:
-      BASE_URL: ${{ secrets.RENDER_APP_URL }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -30,18 +28,10 @@ jobs:
 
   deploy:
     needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    if: ${{ needs.test.result == 'success' && github.ref == 'refs/heads/main' }}
     steps:
-      - name: Trigger Render deploy hook
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
-            echo "ERROR: RENDER_DEPLOY_HOOK secret is not set" >&2
-            exit 1
-          fi
-          echo "Calling Render deploy hook..."
-          curl --fail -X POST "$RENDER_DEPLOY_HOOK"
-      - name: Confirm deploy trigger
-        run: echo "Render deploy hook triggered"
+      - name: Trigger Deploy
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - name: Confirm Deployment Triggered
+        run: echo "Deployment has been triggered."
