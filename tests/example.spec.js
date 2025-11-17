@@ -1,19 +1,21 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+const BASE = process.env.BASE_URL || 'http://localhost:5173/';
 
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
-});
+test.describe('Contador', () => {
+  test('incrementa al hacer click en el botón', async ({ page }) => {
+    await page.goto(BASE);
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+    // Localiza el botón que muestra el contador (inicio en 0)
+    const button = page.getByRole('button', { name: /count is 0/i });
+    await expect(button).toBeVisible();
 
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
+    // Haz click y verifica incrementos
+    await button.click();
+    await expect(page.getByRole('button', { name: /count is 1/i })).toBeVisible();
 
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+    await page.getByRole('button').click();
+    await expect(page.getByRole('button', { name: /count is 2/i })).toBeVisible();
+  });
 });
